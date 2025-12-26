@@ -1067,13 +1067,13 @@ with tab1:
                     if 'Activation Year' in df_planet_act.columns:
                         p_hits = df_planet_act[df_planet_act['Activation Year'] == age]
                         for _, row in p_hits.iterrows():
-                            st.info(f"🪐 **Planet ({row['Age Type']}):** {row['Planet']} in {row['House']}")
+                            st.info(f"🪐 **Planet ({row['Age Type']}):** If {name}'s Natal {row['Planet']} is in {row['House']}")
                             found_any = True
                     # 3. BSP Rules
                     if 'Timing (Year of Life)' in df_bsp.columns:
                         bsp_hits = df_bsp[df_bsp['Timing (Year of Life)'].astype(str).str.match(rf"^{age}(\D|$)", na=False)]
                         for _, row in bsp_hits.iterrows():
-                           st.info(f"📜 **BSP Rule:** {row['Planet']} - {row['BSP Rule #']} (Target: {row['Target House (From Planet)']})\n\n{row['Effect / Logic']}")
+                           st.info(f"📜 **{row['BSP Rule #']}:** {row['Planet']} (Target: {row['Target House (From Planet)']} from natal planet)\n\n{row['Effect / Logic']}")
                            found_any = True
                     if not found_any: st.caption("No specific activations found.")
         else:
@@ -1199,7 +1199,18 @@ with tab4:
                 max_value=max_y, 
                 value=(default_start, default_end)
             )
+            
+            # --- NEW FILTERS ---
+            fp_list = sorted(df_p_all['Planet'].unique().tolist())
+            fh_list = sorted(df_p_all['House'].unique().tolist())
+            
+            sel_planets = st.multiselect("Filter by Planet", fp_list, default=[])
+            sel_houses = st.multiselect("Filter by House", fh_list, default=[])
+            
             mask = (df_p_all['Activation Calendar Year'] >= sel_range[0]) & (df_p_all['Activation Calendar Year'] <= sel_range[1])
+            if sel_planets: mask &= df_p_all['Planet'].isin(sel_planets)
+            if sel_houses: mask &= df_p_all['House'].isin(sel_houses)
+            
             df_p_filt = df_p_all[mask].copy().sort_values(by='Activation Calendar Year')
             
             if df_p_filt.empty:
